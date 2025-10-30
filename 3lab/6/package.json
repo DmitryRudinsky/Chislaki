@@ -1,0 +1,24 @@
+{
+  "name": "numerical-integration",
+  "version": "1.0.0",
+  "description": "Лабораторная работа 3.6 - Численное интегрирование",
+  "main": "electron-main.js",
+  "scripts": {
+    "start": "electron .",
+    "calc": "node numerical_integration.js"
+  },
+  "keywords": [
+    "numerical-methods",
+    "integration",
+    "simpson",
+    "trapezoid",
+    "midpoint",
+    "euler"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^38.2.2"
+  }
+}
+

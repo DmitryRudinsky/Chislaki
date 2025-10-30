@@ -1,0 +1,17 @@
+{
+  "name": "least-squares-method",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "calc": "node least_squares.js"
+  },
+  "keywords": ["least-squares", "approximation", "mnk"],
+  "author": "",
+  "license": "ISC",
+  "description": "Метод наименьших квадратов (МНК) - аппроксимация многочленами",
+  "devDependencies": {
+    "electron": "^38.2.2"
+  }
+}
+

@@ -1,0 +1,22 @@
+{
+  "name": "cubic-spline",
+  "version": "1.0.0",
+  "description": "Лабораторная работа 3.3 - Кубический сплайн",
+  "main": "electron-main.js",
+  "scripts": {
+    "start": "electron .",
+    "calc": "node spline.js"
+  },
+  "keywords": [
+    "numerical-methods",
+    "interpolation",
+    "spline",
+    "cubic-spline"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^38.2.2"
+  }
+}
+

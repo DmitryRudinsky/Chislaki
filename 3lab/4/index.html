@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>МНК - Метод наименьших квадратов</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 18px;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        .info-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .info-box h2 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .coefficients {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        .coeff-group {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #4CAF50;
+        }
+        .coeff-group h3 {
+            margin-top: 0;
+            color: #4CAF50;
+        }
+        .coeff-group p {
+            margin: 5px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .results-table th,
+        .results-table td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        .results-table th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .results-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .highlight {
+            background-color: #fff3cd !important;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Метод наименьших квадратов (МНК)</h1>
+    <div class="subtitle">Вариант 29 | x* = -0.185</div>
+
+    <div class="info-box">
+        <h2>📊 Сравнение результатов</h2>
+        <table class="results-table">
+            <thead>
+                <tr>
+                    <th>Степень</th>
+                    <th>Многочлен</th>
+                    <th>Φ (сумма квадратов)</th>
+                    <th>E (СКО)</th>
+                    <th>F(x*) при x=-0.185</th>
+                </tr>
+            </thead>
+            <tbody id="resultsTable"></tbody>
+        </table>
+    </div>
+
+    <div class="container full-width">
+        <div class="chart-container">
+            <h3 style="text-align: center;">Все многочлены и исходные данные</h3>
+            <canvas id="mainChart"></canvas>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="chart-container">
+            <h3 style="text-align: center;">Многочлен 1-й степени</h3>
+            <canvas id="chart1"></canvas>
+        </div>
+        <div class="chart-container">
+            <h3 style="text-align: center;">Многочлен 2-й степени</h3>
+            <canvas id="chart2"></canvas>
+        </div>
+    </div>
+
+    <div class="container full-width">
+        <div class="chart-container">
+            <h3 style="text-align: center;">Многочлен 3-й степени</h3>
+            <canvas id="chart3"></canvas>
+        </div>
+    </div>
+
+    <div class="info-box">
+        <h2>🔢 Коэффициенты многочленов</h2>
+        <div class="coefficients" id="coefficients"></div>
+    </div>
+
+    <script>
+        const xStar = -0.185;
+        const xs = [-1.2, -0.95, -0.70, -0.45, -0.20, 0.05, 0.30, 0.55, 0.80, 1.05, 1.30];
+        const ys = [8.7261, 5.9842, 3.7347, 2.2423, 1.4658, 1.2147, 1.7239, 2.5624, 2.8157, 2.6783, 1.5237];
+
+        // Коэффициенты многочленов (из результатов node 4.js)
+        const coeffs1 = [3.2448805455, -1.8579745455];
+        const coeffs2 = [1.7417203636, -2.0994460606, 2.4147151515];
+        const coeffs3 = [1.6126986555, 0.4693645253, 2.7634224709, -2.3247154623];
+
+        function evaluatePolynomial(coeffs, x) {
+            let result = 0;
+            for (let i = 0; i < coeffs.length; i++) {
+                result += coeffs[i] * Math.pow(x, i);
+            }
+            return result;
+        }
+
+        function calculateSquaredError(X, Y, coeffs) {
+            let sum = 0;
+            for (let i = 0; i < X.length; i++) {
+                const predicted = evaluatePolynomial(coeffs, X[i]);
+                const error = predicted - Y[i];
+                sum += error * error;
+            }
+            return sum;
+        }
+
+        function calculateMSE(X, Y, coeffs) {
+            return Math.sqrt(calculateSquaredError(X, Y, coeffs) / (X.length + 1));
+        }
+
+        // Генерация точек для плавных кривых
+        const plotPoints = 200;
+        const xMin = -1.3;
+        const xMax = 1.4;
+        const xPlot = [];
+        for (let i = 0; i <= plotPoints; i++) {
+            xPlot.push(xMin + (xMax - xMin) * i / plotPoints);
+        }
+
+        const y1Plot = xPlot.map(x => evaluatePolynomial(coeffs1, x));
+        const y2Plot = xPlot.map(x => evaluatePolynomial(coeffs2, x));
+        const y3Plot = xPlot.map(x => evaluatePolynomial(coeffs3, x));
+
+        // Основной график
+        const mainCtx = document.getElementById('mainChart').getContext('2d');
+        new Chart(mainCtx, {
+            type: 'line',
+            data: {
+                datasets: [
+                    {
+                        label: 'Исходные данные',
+                        data: xs.map((x, i) => ({x: x, y: ys[i]})),
+                        backgroundColor: 'black',
+                        borderColor: 'black',
+                        borderWidth: 0,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        showLine: false
+                    },
+                    {
+                        label: 'F₁(x) - степень 1',
+                        data: xPlot.map((x, i) => ({x: x, y: y1Plot[i]})),
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'F₂(x) - степень 2',
+                        data: xPlot.map((x, i) => ({x: x, y: y2Plot[i]})),
+                        borderColor: 'rgb(54, 162, 235)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'F₃(x) - степень 3',
+                        data: xPlot.map((x, i) => ({x: x, y: y3Plot[i]})),
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.4
+                    },
+                    {
+                        label: `x* = ${xStar}`,
+                        data: [{x: xStar, y: evaluatePolynomial(coeffs3, xStar)}],
+                        backgroundColor: 'red',
+                        borderColor: 'red',
+                        pointRadius: 8,
+                        pointStyle: 'star',
+                        showLine: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        type: 'linear',
+                        position: 'bottom',
+                        title: {
+                            display: true,
+                            text: 'x'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'y'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Функция для создания отдельного графика
+        function createChart(canvasId, coeffs, degree, color) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            const yPlot = xPlot.map(x => evaluatePolynomial(coeffs, x));
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Исходные данные',
+                            data: xs.map((x, i) => ({x: x, y: ys[i]})),
+                            backgroundColor: 'black',
+                            borderColor: 'black',
+                            pointRadius: 5,
+                            showLine: false
+                        },
+                        {
+                            label: `F${degree}(x)`,
+                            data: xPlot.map((x, i) => ({x: x, y: yPlot[i]})),
+                            borderColor: color,
+                            backgroundColor: color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom'
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    }
+                }
+            });
+        }
+
+        createChart('chart1', coeffs1, 1, 'rgb(255, 99, 132)');
+        createChart('chart2', coeffs2, 2, 'rgb(54, 162, 235)');
+        createChart('chart3', coeffs3, 3, 'rgb(75, 192, 192)');
+
+        // Заполнение таблицы результатов
+        const errors = [
+            calculateSquaredError(xs, ys, coeffs1),
+            calculateSquaredError(xs, ys, coeffs2),
+            calculateSquaredError(xs, ys, coeffs3)
+        ];
+        const mses = [
+            calculateMSE(xs, ys, coeffs1),
+            calculateMSE(xs, ys, coeffs2),
+            calculateMSE(xs, ys, coeffs3)
+        ];
+        const values = [
+            evaluatePolynomial(coeffs1, xStar),
+            evaluatePolynomial(coeffs2, xStar),
+            evaluatePolynomial(coeffs3, xStar)
+        ];
+
+        const polynomials = [
+            '3.245 - 1.858·x',
+            '1.742 - 2.099·x + 2.415·x²',
+            '1.613 + 0.469·x + 2.763·x² - 2.325·x³'
+        ];
+
+        const resultsTable = document.getElementById('resultsTable');
+        for (let i = 0; i < 3; i++) {
+            const row = resultsTable.insertRow();
+            if (i === 2) row.classList.add('highlight');
+            row.insertCell(0).textContent = i + 1;
+            row.insertCell(1).textContent = polynomials[i];
+            row.insertCell(2).textContent = errors[i].toFixed(6);
+            row.insertCell(3).textContent = mses[i].toFixed(6);
+            row.insertCell(4).textContent = values[i].toFixed(6);
+        }
+
+        // Отображение коэффициентов
+        const coeffsContainer = document.getElementById('coefficients');
+        const allCoeffs = [coeffs1, coeffs2, coeffs3];
+        
+        for (let deg = 0; deg < 3; deg++) {
+            const div = document.createElement('div');
+            div.className = 'coeff-group';
+            div.innerHTML = `<h3>Степень ${deg + 1}</h3>`;
+            
+            allCoeffs[deg].forEach((c, i) => {
+                const p = document.createElement('p');
+                p.textContent = `a${i} = ${c.toFixed(8)}`;
+                div.appendChild(p);
+            });
+            
+            coeffsContainer.appendChild(div);
+        }
+    </script>
+</body>
+</html>
+

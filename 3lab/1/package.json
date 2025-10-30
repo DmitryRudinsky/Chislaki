@@ -1,0 +1,21 @@
+{
+  "name": "lagrange-interpolation",
+  "version": "1.0.0",
+  "description": "Лабораторная работа 3.1 - Интерполяция Лагранжа",
+  "main": "electron-main.js",
+  "scripts": {
+    "start": "electron .",
+    "calc": "node lagrange.js"
+  },
+  "keywords": [
+    "numerical-methods",
+    "interpolation",
+    "lagrange"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^38.2.2"
+  }
+}
+

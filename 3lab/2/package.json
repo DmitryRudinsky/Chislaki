@@ -1,0 +1,21 @@
+{
+  "name": "newton-interpolation",
+  "version": "1.0.0",
+  "description": "Лабораторная работа 3.2 - Интерполяция Ньютона",
+  "main": "electron-main.js",
+  "scripts": {
+    "start": "electron .",
+    "calc": "node newton.js"
+  },
+  "keywords": [
+    "numerical-methods",
+    "interpolation",
+    "newton"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^38.2.2"
+  }
+}
+
