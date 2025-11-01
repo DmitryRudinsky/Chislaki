@@ -24,10 +24,12 @@ function dividedDifferences(X, Y) {
   const n = X.length;
   const table = Array(n).fill(0).map(() => Array(n).fill(0));
   
+  // Заполняем первый столбец значениями Y
   for (let i = 0; i < n; i += 1) {
     table[i][0] = Y[i];
   }
-  
+
+  // Заполняем остальные столбцы значениями разделённых разностей
   for (let j = 1; j < n; j += 1) {
     for (let i = 0; i < n - j; i += 1) {
       table[i][j] = (table[i + 1][j - 1] - table[i][j - 1]) / (X[i + j] - X[i]);
@@ -114,7 +116,7 @@ function estimateMaxDerivative(X, Y) {
   
   return maxDiff * 10;
 }
-
+// P(x) = a_0 + a_1(x - x_0) + a_2(x - x_0)(x - x_1) + ... + a_n(x - x_0)(x - x_1)...(x - x_{n-1})
 function run() {
   const { X: X2, Y: Y2 } = chooseNearestNodes(xs, ys, xStar, 2);
   const { X: X3, Y: Y3 } = chooseNearestNodes(xs, ys, xStar, 3);

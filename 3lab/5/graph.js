@@ -67,8 +67,12 @@ function showFirstDerivativeChart(step) {
     borderDash: [5, 5]
   }];
   
-  // Получаем все методы
-  const methodNames = results[0].firstDerivative.methods.map(m => m.name);
+  // Получаем все методы из всех точек (уникальные)
+  const allMethods = new Set();
+  results.forEach(r => {
+    r.firstDerivative.methods.forEach(m => allMethods.add(m.name));
+  });
+  const methodNames = Array.from(allMethods);
   
   methodNames.forEach((name, idx) => {
     const methodData = results.map(r => {
@@ -153,8 +157,12 @@ function showSecondDerivativeChart(step) {
     borderDash: [5, 5]
   }];
   
-  // Получаем все методы
-  const methodNames = results[0].secondDerivative.methods.map(m => m.name);
+  // Получаем все методы из всех точек (уникальные)
+  const allMethods = new Set();
+  results.forEach(r => {
+    r.secondDerivative.methods.forEach(m => allMethods.add(m.name));
+  });
+  const methodNames = Array.from(allMethods);
   
   methodNames.forEach((name, idx) => {
     const methodData = results.map(r => {
@@ -227,7 +235,13 @@ function showFirstErrorChart(step) {
   }
   
   const xValues = results.map(r => r.x);
-  const methodNames = results[0].firstDerivative.methods.map(m => m.name);
+  
+  // Получаем все методы из всех точек (уникальные)
+  const allMethods = new Set();
+  results.forEach(r => {
+    r.firstDerivative.methods.forEach(m => allMethods.add(m.name));
+  });
+  const methodNames = Array.from(allMethods);
   
   const datasets = methodNames.map((name, idx) => {
     const errorData = results.map(r => {
@@ -301,7 +315,13 @@ function showSecondErrorChart(step) {
   }
   
   const xValues = results.map(r => r.x);
-  const methodNames = results[0].secondDerivative.methods.map(m => m.name);
+  
+  // Получаем все методы из всех точек (уникальные)
+  const allMethods = new Set();
+  results.forEach(r => {
+    r.secondDerivative.methods.forEach(m => allMethods.add(m.name));
+  });
+  const methodNames = Array.from(allMethods);
   
   const datasets = methodNames.map((name, idx) => {
     const errorData = results.map(r => {

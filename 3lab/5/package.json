@@ -5,7 +5,7 @@
   "main": "electron-main.js",
   "scripts": {
     "start": "electron .",
-    "calc": "node console-calc.js"
+    "calc": "node numerical_differentiation.js"
   },
   "keywords": [
     "numerical-methods",

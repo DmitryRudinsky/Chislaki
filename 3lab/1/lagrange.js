@@ -57,7 +57,7 @@ function lagrangeCoefficients(X, Y) {
     let denom = 1;
     for (let j = 0; j <= n; j += 1) {
       if (i === j) continue;
-      Li = multiplyPolynomials(Li, [-X[j], 1]);
+      Li = multiplyPolynomials(Li, [-X[j], 1]); // x - x_j
       denom *= (X[i] - X[j]);
     }
     const scaled = scalePolynomial(Li, Y[i] / denom);

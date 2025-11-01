@@ -25,48 +25,52 @@ function solveTridiagonal(a, b, c, d) {
   return x;
 }
 
+// S(x) = a_i + b_i(x - x_i) + c_i(x - x_i)² + d_i(x - x_i)³
+// Ключевая идея алгоритма
+// Сначала найдем все c, а потом через них вычислим a, b, d.
+// Почему именно c? Потому что из условия непрерывности второй производной получается линейная система уравнений для c.
 function buildNaturalCubicSpline(X, Y) {
-  const n = X.length - 1;
+  const n = X.length - 1; // количество отрезков
   const h = Array(n).fill(0);
-  
   for (let i = 0; i < n; i++) {
-    h[i] = X[i + 1] - X[i];
+    h[i] = X[i + 1] - X[i]; // h[i] — длина i-го отрезка между узлами
   }
 
   const alpha = Array(n).fill(0);
   for (let i = 1; i < n; i++) {
+    // это правая часть системы уравнений, которую мы будем решать для нахождения коэффициентов c
     alpha[i] = (3 / h[i]) * (Y[i + 1] - Y[i]) - (3 / h[i - 1]) * (Y[i] - Y[i - 1]);
   }
 
   const size = n - 1;
-  const a = Array(size).fill(0);
-  const b = Array(size).fill(0);
-  const c = Array(size).fill(0);
-  const d = Array(size).fill(0);
+  const matrixA = Array(size).fill(0);  // нижняя диагональ системы
+  const matrixB = Array(size).fill(0);  // главная диагональ системы
+  const matrixC = Array(size).fill(0);  // верхняя диагональ системы
+  const matrixD = Array(size).fill(0);  // правая часть системы
 
-  b[0] = 2 * (h[0] + h[1]);
-  c[0] = h[1];
-  d[0] = alpha[1];
+  matrixB[0] = 2 * (h[0] + h[1]);
+  matrixC[0] = h[1];
+  matrixD[0] = alpha[1];
 
   for (let i = 1; i < size - 1; i++) {
-    a[i] = h[i];
-    b[i] = 2 * (h[i] + h[i + 1]);
-    c[i] = h[i + 1];
-    d[i] = alpha[i + 1];
+    matrixA[i] = h[i];
+    matrixB[i] = 2 * (h[i] + h[i + 1]);
+    matrixC[i] = h[i + 1];
+    matrixD[i] = alpha[i + 1];
   }
 
   if (size > 1) {
-    a[size - 1] = h[n - 2];
-    b[size - 1] = 2 * (h[n - 2] + h[n - 1]);
-    d[size - 1] = alpha[n - 1];
+    matrixA[size - 1] = h[n - 2];
+    matrixB[size - 1] = 2 * (h[n - 2] + h[n - 1]);
+    matrixD[size - 1] = alpha[n - 1];
   }
 
-  const cInner = solveTridiagonal(a, b, c, d);
+  const cSolution = solveTridiagonal(matrixA, matrixB, matrixC, matrixD);
 
   const cCoeffs = Array(n + 1).fill(0);
   cCoeffs[0] = 0;
-  for (let i = 0; i < cInner.length; i++) {
-    cCoeffs[i + 1] = cInner[i];
+  for (let i = 0; i < cSolution.length; i++) {
+    cCoeffs[i + 1] = cSolution[i];
   }
   cCoeffs[n] = 0;
 

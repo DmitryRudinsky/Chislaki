@@ -157,8 +157,7 @@ npm run calc
 
 ```
 3lab/5/
-├── numerical_differentiation.js  # Реализация всех схем
-├── console-calc.js               # Консольное приложение
+├── numerical_differentiation.js  # Реализация всех схем + консольное приложение
 ├── graph.js                      # Визуализация
 ├── index.html                    # Веб-интерфейс
 ├── electron-main.js              # Electron entry point
