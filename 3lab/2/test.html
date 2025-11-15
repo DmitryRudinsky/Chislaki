@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Тест - Все интервалы (Ньютон)</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+    }
+    .interval {
+      margin: 10px 0;
+      padding: 10px;
+      background: #2d2d2d;
+      border-left: 4px solid #666;
+    }
+    .interval.contains {
+      border-left-color: #4ec9b0;
+      background: #1e3a32;
+    }
+    .degree2 { color: #ce9178; }
+    .degree3 { color: #c586c0; }
+    h2 { color: #569cd6; }
+    .error { color: #f48771; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+  <h1>Тест: Все интервалы интерполяции Ньютона</h1>
+  <div id="output"></div>
+  
+  <script src="newton.js"></script>
+  <script>
+    const xStar = 0.413;
+    const xs = [-1.33, -0.94, -0.55, -0.16, 0.23, 0.62, 1.01, 1.40, 1.79];
+    const ys = [-8.6254, -7.2165, -5.1761, 4.0349, 3.9539, 4.5172, -2.6217, -4.9364, -5.0512];
+    
+    const output = document.getElementById('output');
+    
+    // Тест для степени 2
+    output.innerHTML += '<h2 class="degree2">Многочлены Ньютона 2-й степени</h2>';
+    const intervals2 = getAllConsecutiveIntervals(xs, ys, 2);
+    
+    intervals2.forEach((interval, idx) => {
+      const coeffs = dividedDifferences(interval.X, interval.Y);
+      const pAtStar = evaluateNewton(interval.X, coeffs, xStar);
+      const contains = isPointInInterval(xStar, interval.X);
+      const maxDeriv = estimateMaxDerivative(interval.X, interval.Y);
+      const error = estimateError(interval.X, xStar, maxDeriv);
+      
+      output.innerHTML += `
+        <div class="interval ${contains ? 'contains' : ''}">
+          <strong>Интервал ${idx + 1}:</strong> ${interval.interval} 
+          ${contains ? '✓ Содержит x*' : ''}
+          <br>
+          Узлы: ${interval.X.map(x => x.toFixed(2)).join(', ')}
+          <br>
+          P₂(${xStar}) = <strong>${pAtStar.toFixed(6)}</strong>
+          <br>
+          <span class="error">Погрешность: ≤ ${error.toExponential(3)}</span>
+        </div>
+      `;
+    });
+    
+    // Тест для степени 3
+    output.innerHTML += '<h2 class="degree3">Многочлены Ньютона 3-й степени</h2>';
+    const intervals3 = getAllConsecutiveIntervals(xs, ys, 3);
+    
+    intervals3.forEach((interval, idx) => {
+      const coeffs = dividedDifferences(interval.X, interval.Y);
+      const pAtStar = evaluateNewton(interval.X, coeffs, xStar);
+      const contains = isPointInInterval(xStar, interval.X);
+      const maxDeriv = estimateMaxDerivative(interval.X, interval.Y);
+      const error = estimateError(interval.X, xStar, maxDeriv);
+      
+      output.innerHTML += `
+        <div class="interval ${contains ? 'contains' : ''}">
+          <strong>Интервал ${idx + 1}:</strong> ${interval.interval}
+          ${contains ? '✓ Содержит x*' : ''}
+          <br>
+          Узлы: ${interval.X.map(x => x.toFixed(2)).join(', ')}
+          <br>
+          P₃(${xStar}) = <strong>${pAtStar.toFixed(6)}</strong>
+          <br>
+          <span class="error">Погрешность: ≤ ${error.toExponential(3)}</span>
+        </div>
+      `;
+    });
+    
+    // Сводка
+    const deg2WithX = intervals2.filter(i => isPointInInterval(xStar, i.X));
+    const deg3WithX = intervals3.filter(i => isPointInInterval(xStar, i.X));
+    
+    // Вычисляем средние погрешности
+    const avg2Error = deg2WithX.reduce((sum, i) => {
+      const coeffs = dividedDifferences(i.X, i.Y);
+      const maxDeriv = estimateMaxDerivative(i.X, i.Y);
+      return sum + estimateError(i.X, xStar, maxDeriv);
+    }, 0) / deg2WithX.length;
+    
+    const avg3Error = deg3WithX.reduce((sum, i) => {
+      const coeffs = dividedDifferences(i.X, i.Y);
+      const maxDeriv = estimateMaxDerivative(i.X, i.Y);
+      return sum + estimateError(i.X, xStar, maxDeriv);
+    }, 0) / deg3WithX.length;
+    
+    output.innerHTML += `
+      <h2>Сводка</h2>
+      <div class="interval">
+        <strong>Всего интервалов P₂:</strong> ${intervals2.length} (содержат x*: ${deg2WithX.length})
+        <br>
+        <strong>Всего интервалов P₃:</strong> ${intervals3.length} (содержат x*: ${deg3WithX.length})
+        <br>
+        <span class="error">
+          <strong>Средняя погрешность P₂ (интерполяция):</strong> ${avg2Error.toExponential(3)}
+          <br>
+          <strong>Средняя погрешность P₃ (интерполяция):</strong> ${avg3Error.toExponential(3)}
+        </span>
+      </div>
+    `;
+  </script>
+</body>
+</html>
+

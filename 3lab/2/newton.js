@@ -20,6 +20,31 @@ function chooseNearestNodes(xValues, yValues, xTarget, degree) {
   };
 }
 
+// Новая функция: получить все возможные последовательные интервалы
+function getAllConsecutiveIntervals(xValues, yValues, degree) {
+  const count = degree + 1;
+  const intervals = [];
+  
+  for (let i = 0; i <= xValues.length - count; i++) {
+    const X = xValues.slice(i, i + count);
+    const Y = yValues.slice(i, i + count);
+    intervals.push({
+      X,
+      Y,
+      startIdx: i,
+      endIdx: i + count - 1,
+      interval: `[${X[0].toFixed(2)}, ${X[X.length - 1].toFixed(2)}]`
+    });
+  }
+  
+  return intervals;
+}
+
+// Проверить, находится ли точка внутри интервала
+function isPointInInterval(xTarget, X) {
+  return xTarget >= X[0] && xTarget <= X[X.length - 1];
+}
+
 function dividedDifferences(X, Y) {
   const n = X.length;
   const table = Array(n).fill(0).map(() => Array(n).fill(0));
@@ -118,55 +143,64 @@ function estimateMaxDerivative(X, Y) {
 }
 // P(x) = a_0 + a_1(x - x_0) + a_2(x - x_0)(x - x_1) + ... + a_n(x - x_0)(x - x_1)...(x - x_{n-1})
 function run() {
+  console.log("Заданная точка x* =", xStar);
+  
+  // Получаем все возможные интервалы
+  const intervals2 = getAllConsecutiveIntervals(xs, ys, 2);
+  const intervals3 = getAllConsecutiveIntervals(xs, ys, 3);
+  
+  console.log("\n=== ВСЕ ВОЗМОЖНЫЕ ИНТЕРВАЛЫ ДЛЯ МНОГОЧЛЕНА 2-Й СТЕПЕНИ ===");
+  console.log(`Всего интервалов: ${intervals2.length}`);
+  
+  intervals2.forEach((interval, idx) => {
+    const inInterval = isPointInInterval(xStar, interval.X);
+    console.log(`\n--- Интервал ${idx + 1}: ${interval.interval} ${inInterval ? '✓ содержит x*' : ''} ---`);
+    console.log("Узлы:", interval.X.map((x, i) => `(${x.toFixed(2)}, ${interval.Y[i].toFixed(4)})`).join(', '));
+    
+    const coeffs = dividedDifferences(interval.X, interval.Y);
+    const pAtStar = evaluateNewton(interval.X, coeffs, xStar);
+    const maxDeriv = estimateMaxDerivative(interval.X, interval.Y);
+    const error = estimateError(interval.X, xStar, maxDeriv);
+    
+    console.log(`P₂(${xStar}) = ${pAtStar.toFixed(6)}`);
+    console.log("Коэффициенты:", coeffs.map(c => c.toFixed(4)).join(', '));
+    console.log(`Оценка погрешности: ≤ ${error.toExponential(3)}`);
+  });
+  
+  console.log("\n=== ВСЕ ВОЗМОЖНЫЕ ИНТЕРВАЛЫ ДЛЯ МНОГОЧЛЕНА 3-Й СТЕПЕНИ ===");
+  console.log(`Всего интервалов: ${intervals3.length}`);
+  
+  intervals3.forEach((interval, idx) => {
+    const inInterval = isPointInInterval(xStar, interval.X);
+    console.log(`\n--- Интервал ${idx + 1}: ${interval.interval} ${inInterval ? '✓ содержит x*' : ''} ---`);
+    console.log("Узлы:", interval.X.map((x, i) => `(${x.toFixed(2)}, ${interval.Y[i].toFixed(4)})`).join(', '));
+    
+    const coeffs = dividedDifferences(interval.X, interval.Y);
+    const pAtStar = evaluateNewton(interval.X, coeffs, xStar);
+    const maxDeriv = estimateMaxDerivative(interval.X, interval.Y);
+    const error = estimateError(interval.X, xStar, maxDeriv);
+    
+    console.log(`P₃(${xStar}) = ${pAtStar.toFixed(6)}`);
+    console.log("Коэффициенты:", coeffs.map(c => c.toFixed(4)).join(', '));
+    console.log(`Оценка погрешности: ≤ ${error.toExponential(3)}`);
+  });
+
+  // Старый подход с ближайшими точками для справки
+  console.log("\n=== ПОДХОД С БЛИЖАЙШИМИ ТОЧКАМИ (для справки) ===");
   const { X: X2, Y: Y2 } = chooseNearestNodes(xs, ys, xStar, 2);
   const { X: X3, Y: Y3 } = chooseNearestNodes(xs, ys, xStar, 3);
-
+  
   const coeffs2 = dividedDifferences(X2, Y2);
   const coeffs3 = dividedDifferences(X3, Y3);
-
+  
   const p2AtStar = evaluateNewton(X2, coeffs2, xStar);
   const p3AtStar = evaluateNewton(X3, coeffs3, xStar);
-
-  const verify2 = verifyAtAllNodes(X2, Y2, coeffs2);
-  const verify3 = verifyAtAllNodes(X3, Y3, coeffs3);
-
-  const maxDeriv2 = estimateMaxDerivative(X2, Y2);
-  const maxDeriv3 = estimateMaxDerivative(X3, Y3);
-  const error2 = estimateError(X2, xStar, maxDeriv2);
-  const error3 = estimateError(X3, xStar, maxDeriv3);
-
-  console.log("Заданная точка x* =", xStar);
-  console.log("\nВыбранные узлы для многочлена 2-й степени:");
-  console.table(X2.map((x, i) => ({ x, y: Y2[i] })));
-  console.log("\nВыбранные узлы для многочлена 3-й степени:");
-  console.table(X3.map((x, i) => ({ x, y: Y3[i] })));
-
-  console.log("\n=== МНОГОЧЛЕН НЬЮТОНА 2-Й СТЕПЕНИ ===");
-  console.log("Коэффициенты разделённых разностей:", coeffs2.map(c => c.toFixed(6)));
-  console.log("\nP₂(x) =", newtonPolynomialToString(X2, coeffs2));
-  console.log("\nЗначение в точке x*:");
+  
+  console.log("\nБлижайшие узлы для P₂:", X2.map(x => x.toFixed(2)).join(', '));
   console.log(`P₂(${xStar}) = ${p2AtStar.toFixed(6)}`);
-  console.log("\nПроверка во всех узловых точках:");
-  verify2.forEach(v => {
-    console.log(`  x = ${v.xi.toFixed(2)}: P₂(x) = ${v.p.toFixed(6)}, y = ${v.yi}, погрешность = ${v.diff.toExponential(3)}`);
-  });
-  console.log(`\nОценка погрешности интерполяции в точке x*: ≤ ${error2.toExponential(3)}`);
-
-  console.log("\n=== МНОГОЧЛЕН НЬЮТОНА 3-Й СТЕПЕНИ ===");
-  console.log("Коэффициенты разделённых разностей:", coeffs3.map(c => c.toFixed(6)));
-  console.log("\nP₃(x) =", newtonPolynomialToString(X3, coeffs3));
-  console.log("\nЗначение в точке x*:");
+  
+  console.log("\nБлижайшие узлы для P₃:", X3.map(x => x.toFixed(2)).join(', '));
   console.log(`P₃(${xStar}) = ${p3AtStar.toFixed(6)}`);
-  console.log("\nПроверка во всех узловых точках:");
-  verify3.forEach(v => {
-    console.log(`  x = ${v.xi.toFixed(2)}: P₃(x) = ${v.p.toFixed(6)}, y = ${v.yi}, погрешность = ${v.diff.toExponential(3)}`);
-  });
-  console.log(`\nОценка погрешности интерполяции в точке x*: ≤ ${error3.toExponential(3)}`);
-
-  console.log("\n=== СРАВНЕНИЕ РЕЗУЛЬТАТОВ ===");
-  console.log(`P₂(${xStar}) = ${p2AtStar.toFixed(6)}`);
-  console.log(`P₃(${xStar}) = ${p3AtStar.toFixed(6)}`);
-  console.log(`Разница |P₃ - P₂| = ${Math.abs(p3AtStar - p2AtStar).toFixed(6)}`);
 }
 
 if (typeof module !== 'undefined' && module.exports) {

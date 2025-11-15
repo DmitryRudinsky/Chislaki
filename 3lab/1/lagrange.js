@@ -24,6 +24,30 @@ function chooseNearestNodes(xValues, yValues, xTarget, degree) {
   };
 }
 
+function getAllConsecutiveIntervals(xValues, yValues, degree) {
+  const count = degree + 1;
+  const intervals = [];
+  
+  for (let i = 0; i <= xValues.length - count; i++) {
+    const X = xValues.slice(i, i + count);
+    const Y = yValues.slice(i, i + count);
+    intervals.push({
+      X,
+      Y,
+      startIdx: i,
+      endIdx: i + count - 1,
+      interval: `[${X[0].toFixed(2)}, ${X[X.length - 1].toFixed(2)}]`
+    });
+  }
+  
+  return intervals;
+}
+
+// Проверить, находится ли точка внутри интервала
+function isPointInInterval(xTarget, X) {
+  return xTarget >= X[0] && xTarget <= X[X.length - 1];
+}
+
 function multiplyPolynomials(a, b) {
   const res = Array(a.length + b.length - 1).fill(0);
   for (let i = 0; i < a.length; i += 1) {
@@ -104,42 +128,58 @@ function verifyAtAllNodes(coeffs, X, Y) {
 }
 
 function run() {
+  console.log("Заданная точка x* =", xStar);
+  
+  // Получаем все возможные интервалы
+  const intervals2 = getAllConsecutiveIntervals(xs, ys, 2);
+  const intervals3 = getAllConsecutiveIntervals(xs, ys, 3);
+  
+  console.log("\n=== ВСЕ ВОЗМОЖНЫЕ ИНТЕРВАЛЫ ДЛЯ МНОГОЧЛЕНА 2-Й СТЕПЕНИ ===");
+  console.log(`Всего интервалов: ${intervals2.length}`);
+  
+  intervals2.forEach((interval, idx) => {
+    const inInterval = isPointInInterval(xStar, interval.X);
+    console.log(`\n--- Интервал ${idx + 1}: ${interval.interval} ${inInterval ? '✓ содержит x*' : ''} ---`);
+    console.log("Узлы:", interval.X.map((x, i) => `(${x.toFixed(2)}, ${interval.Y[i].toFixed(4)})`).join(', '));
+    
+    const coeffs = lagrangeCoefficients(interval.X, interval.Y);
+    const pAtStar = evaluatePolynomial(coeffs, xStar);
+    
+    console.log(`P₂(${xStar}) = ${pAtStar.toFixed(6)}`);
+    console.log("Многочлен:", polynomialToString(coeffs, 4));
+  });
+  
+  console.log("\n=== ВСЕ ВОЗМОЖНЫЕ ИНТЕРВАЛЫ ДЛЯ МНОГОЧЛЕНА 3-Й СТЕПЕНИ ===");
+  console.log(`Всего интервалов: ${intervals3.length}`);
+  
+  intervals3.forEach((interval, idx) => {
+    const inInterval = isPointInInterval(xStar, interval.X);
+    console.log(`\n--- Интервал ${idx + 1}: ${interval.interval} ${inInterval ? '✓ содержит x*' : ''} ---`);
+    console.log("Узлы:", interval.X.map((x, i) => `(${x.toFixed(2)}, ${interval.Y[i].toFixed(4)})`).join(', '));
+    
+    const coeffs = lagrangeCoefficients(interval.X, interval.Y);
+    const pAtStar = evaluatePolynomial(coeffs, xStar);
+    
+    console.log(`P₃(${xStar}) = ${pAtStar.toFixed(6)}`);
+    console.log("Многочлен:", polynomialToString(coeffs, 4));
+  });
+
+  // Старый подход с ближайшими точками для справки
+  console.log("\n=== ПОДХОД С БЛИЖАЙШИМИ ТОЧКАМИ (для справки) ===");
   const { X: X2, Y: Y2 } = chooseNearestNodes(xs, ys, xStar, 2);
-  console.log("\nВыбранные узлы для многочлена 2-й степени:");
-  console.table(X2.map((x, i) => ({ x, y: Y2[i] })));
-
   const { X: X3, Y: Y3 } = chooseNearestNodes(xs, ys, xStar, 3);
-  console.log("\nВыбранные узлы для многочлена 3-й степени:");
-  console.table(X3.map((x, i) => ({ x, y: Y3[i] })));
-
+  
   const coeffs2 = lagrangeCoefficients(X2, Y2);
   const coeffs3 = lagrangeCoefficients(X3, Y3);
-
+  
   const p2AtStar = evaluatePolynomial(coeffs2, xStar);
   const p3AtStar = evaluatePolynomial(coeffs3, xStar);
-
-  const verify2 = verifyAtAllNodes(coeffs2, X2, Y2);
-  const verify3 = verifyAtAllNodes(coeffs3, X3, Y3);
-
-  console.log("Заданная точка x* =", xStar);
-
-  console.log("\n=== МНОГОЧЛЕН ЛАГРАНЖА 2-Й СТЕПЕНИ ===");
-  console.log("P₂(x) =", polynomialToString(coeffs2, 6));
-  console.log("\nЗначение в точке x*:");
+  
+  console.log("\nБлижайшие узлы для P₂:", X2.map(x => x.toFixed(2)).join(', '));
   console.log(`P₂(${xStar}) = ${p2AtStar.toFixed(6)}`);
-  console.log("\nПроверка во всех узловых точках:");
-  verify2.forEach(v => {
-    console.log(`  x = ${v.xi.toFixed(2)}: P₂(x) = ${v.p.toFixed(6)}, y = ${v.yi}, погрешность = ${v.diff.toExponential(3)}`);
-  });
-
-  console.log("\n=== МНОГОЧЛЕН ЛАГРАНЖА 3-Й СТЕПЕНИ ===");
-  console.log("P₃(x) =", polynomialToString(coeffs3, 6));
-  console.log("\nЗначение в точке x*:");
+  
+  console.log("\nБлижайшие узлы для P₃:", X3.map(x => x.toFixed(2)).join(', '));
   console.log(`P₃(${xStar}) = ${p3AtStar.toFixed(6)}`);
-  console.log("\nПроверка во всех узловых точках:");
-  verify3.forEach(v => {
-    console.log(`  x = ${v.xi.toFixed(2)}: P₃(x) = ${v.p.toFixed(6)}, y = ${v.yi}, погрешность = ${v.diff.toExponential(3)}`);
-  });
 }
 
 if (typeof module !== 'undefined' && module.exports) {
