@@ -58,7 +58,7 @@
           <br>
           P₂(${xStar}) = <strong>${pAtStar.toFixed(6)}</strong>
           <br>
-          <span class="error">Погрешность: ≤ ${error.toExponential(3)}</span>
+          <span class="error">Ошибка интерполяции: ≤ ${error.toExponential(3)}</span>
         </div>
       `;
     });
@@ -83,7 +83,7 @@
           <br>
           P₃(${xStar}) = <strong>${pAtStar.toFixed(6)}</strong>
           <br>
-          <span class="error">Погрешность: ≤ ${error.toExponential(3)}</span>
+          <span class="error">Ошибка интерполяции: ≤ ${error.toExponential(3)}</span>
         </div>
       `;
     });
@@ -113,9 +113,9 @@
         <strong>Всего интервалов P₃:</strong> ${intervals3.length} (содержат x*: ${deg3WithX.length})
         <br>
         <span class="error">
-          <strong>Средняя погрешность P₂ (интерполяция):</strong> ${avg2Error.toExponential(3)}
+          <strong>Средняя ошибка интерполяции P₂ (интерполяция):</strong> ${avg2Error.toExponential(3)}
           <br>
-          <strong>Средняя погрешность P₃ (интерполяция):</strong> ${avg3Error.toExponential(3)}
+          <strong>Средняя ошибка интерполяции P₃ (интерполяция):</strong> ${avg3Error.toExponential(3)}
         </span>
       </div>
     `;

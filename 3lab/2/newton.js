@@ -109,6 +109,7 @@ function verifyAtAllNodes(X, Y, coeffs) {
 }
 
 function estimateError(X, x, maxDerivative) {
+  // Вычисляем произведение ω(x) = (x - x_0)(x - x_1)...(x - x_n)
   let omega = 1;
   for (let i = 0; i < X.length; i += 1) {
     omega *= Math.abs(x - X[i]);
@@ -120,13 +121,16 @@ function estimateError(X, x, maxDerivative) {
     factorial *= i;
   }
   
-  return (maxDerivative / factorial) * omega;
+  // R_n(x) = |ω(x)| * |f[x_0, ..., x_n, x_{n+1}]|
+  // Приближаем f[x_0, ..., x_n, x_{n+1}] через максимальную разделённую разность
+  return Math.abs(omega) * maxDerivative / factorial;
 }
 
 function estimateMaxDerivative(X, Y) {
   const n = X.length;
   const table = Array(n).fill(0).map(() => Array(n).fill(0));
   
+  // Заполняем таблицу разделённых разностей
   for (let i = 0; i < n; i += 1) {
     table[i][0] = Y[i];
   }
@@ -139,6 +143,8 @@ function estimateMaxDerivative(X, Y) {
     }
   }
   
+  // Приближаем следующую разделённую разность через максимальную из имеющихся
+  // Умножаем на коэффициент для более консервативной оценки
   return maxDiff * 10;
 }
 // P(x) = a_0 + a_1(x - x_0) + a_2(x - x_0)(x - x_1) + ... + a_n(x - x_0)(x - x_1)...(x - x_{n-1})
@@ -164,7 +170,7 @@ function run() {
     
     console.log(`P₂(${xStar}) = ${pAtStar.toFixed(6)}`);
     console.log("Коэффициенты:", coeffs.map(c => c.toFixed(4)).join(', '));
-    console.log(`Оценка погрешности: ≤ ${error.toExponential(3)}`);
+    console.log(`Ошибка интерполяции: ≤ ${error.toExponential(3)}`);
   });
   
   console.log("\n=== ВСЕ ВОЗМОЖНЫЕ ИНТЕРВАЛЫ ДЛЯ МНОГОЧЛЕНА 3-Й СТЕПЕНИ ===");
@@ -182,7 +188,7 @@ function run() {
     
     console.log(`P₃(${xStar}) = ${pAtStar.toFixed(6)}`);
     console.log("Коэффициенты:", coeffs.map(c => c.toFixed(4)).join(', '));
-    console.log(`Оценка погрешности: ≤ ${error.toExponential(3)}`);
+    console.log(`Ошибка интерполяции: ≤ ${error.toExponential(3)}`);
   });
 
   // Старый подход с ближайшими точками для справки

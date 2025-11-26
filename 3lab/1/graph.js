@@ -104,9 +104,9 @@ window.addEventListener('DOMContentLoaded', () => {
       const pAtStar = evaluatePolynomial(coeffs, xStar);
       const inInterval = isPointInInterval(xStar, interval.X);
       
-      // Генерируем точки для интерполяции
-      const xMin = Math.min(...xs);
-      const xMax = Math.max(...xs);
+      // Генерируем точки для интерполяции только в пределах интервала
+      const xMin = interval.X[0];
+      const xMax = interval.X[interval.X.length - 1];
       const interpPoints = generateInterpolationPoints(coeffs, xMin, xMax, 200);
       
       const ctx = document.getElementById(`degree2_interval${idx}`);
@@ -197,9 +197,9 @@ window.addEventListener('DOMContentLoaded', () => {
       const pAtStar = evaluatePolynomial(coeffs, xStar);
       const inInterval = isPointInInterval(xStar, interval.X);
       
-      // Генерируем точки для интерполяции
-      const xMin = Math.min(...xs);
-      const xMax = Math.max(...xs);
+      // Генерируем точки для интерполяции только в пределах интервала
+      const xMin = interval.X[0];
+      const xMax = interval.X[interval.X.length - 1];
       const interpPoints = generateInterpolationPoints(coeffs, xMin, xMax, 200);
       
       const ctx = document.getElementById(`degree3_interval${idx}`);

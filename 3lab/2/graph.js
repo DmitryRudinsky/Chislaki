@@ -58,7 +58,7 @@ window.addEventListener('DOMContentLoaded', () => {
           <div class="chart-info">
             <p><strong>Узлы:</strong> ${interval.X.map(x => x.toFixed(2)).join(', ')}</p>
             <p><strong>P₂(${xStar}) =</strong> ${pAtStar.toFixed(6)}</p>
-            <p><strong>Оценка погрешности:</strong> ≤ ${error.toExponential(3)}</p>
+            <p><strong>Ошибка интерполяции:</strong> ≤ ${error.toExponential(3)}</p>
           </div>
           <div class="chart-wrapper">
             <canvas id="degree2_interval${idx}"></canvas>
@@ -86,7 +86,7 @@ window.addEventListener('DOMContentLoaded', () => {
           <div class="chart-info">
             <p><strong>Узлы:</strong> ${interval.X.map(x => x.toFixed(2)).join(', ')}</p>
             <p><strong>P₃(${xStar}) =</strong> ${pAtStar.toFixed(6)}</p>
-            <p><strong>Оценка погрешности:</strong> ≤ ${error.toExponential(3)}</p>
+            <p><strong>Ошибка интерполяции:</strong> ≤ ${error.toExponential(3)}</p>
           </div>
           <div class="chart-wrapper">
             <canvas id="degree3_interval${idx}"></canvas>
@@ -110,10 +110,12 @@ window.addEventListener('DOMContentLoaded', () => {
       const coeffs = dividedDifferences(interval.X, interval.Y);
       const pAtStar = evaluateNewton(interval.X, coeffs, xStar);
       const inInterval = isPointInInterval(xStar, interval.X);
+      const maxDeriv = estimateMaxDerivative(interval.X, interval.Y);
+      const error = estimateError(interval.X, xStar, maxDeriv);
       
-      // Генерируем точки для интерполяции
-      const xMin = Math.min(...xs);
-      const xMax = Math.max(...xs);
+      // Генерируем точки для интерполяции только в пределах интервала
+      const xMin = interval.X[0];
+      const xMax = interval.X[interval.X.length - 1];
       const interpPoints = generateNewtonPoints(interval.X, coeffs, xMin, xMax, 200);
       
       const ctx = document.getElementById(`degree2_interval${idx}`);
@@ -166,6 +168,12 @@ window.addEventListener('DOMContentLoaded', () => {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
+            title: {
+              display: true,
+              text: `P₂(${xStar}) = ${pAtStar.toFixed(6)}, Ошибка интерполяции ≤ ${error.toExponential(3)}`,
+              font: { size: 14, weight: 'bold' },
+              color: inInterval ? '#28a745' : '#666'
+            },
             legend: {
               display: true,
               position: 'bottom',
@@ -203,10 +211,12 @@ window.addEventListener('DOMContentLoaded', () => {
       const coeffs = dividedDifferences(interval.X, interval.Y);
       const pAtStar = evaluateNewton(interval.X, coeffs, xStar);
       const inInterval = isPointInInterval(xStar, interval.X);
+      const maxDeriv = estimateMaxDerivative(interval.X, interval.Y);
+      const error = estimateError(interval.X, xStar, maxDeriv);
       
-      // Генерируем точки для интерполяции
-      const xMin = Math.min(...xs);
-      const xMax = Math.max(...xs);
+      // Генерируем точки для интерполяции только в пределах интервала
+      const xMin = interval.X[0];
+      const xMax = interval.X[interval.X.length - 1];
       const interpPoints = generateNewtonPoints(interval.X, coeffs, xMin, xMax, 200);
       
       const ctx = document.getElementById(`degree3_interval${idx}`);
@@ -259,6 +269,12 @@ window.addEventListener('DOMContentLoaded', () => {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
+            title: {
+              display: true,
+              text: `P₃(${xStar}) = ${pAtStar.toFixed(6)}, Ошибка интерполяции ≤ ${error.toExponential(3)}`,
+              font: { size: 14, weight: 'bold' },
+              color: inInterval ? '#28a745' : '#666'
+            },
             legend: {
               display: true,
               position: 'bottom',
@@ -319,7 +335,7 @@ function fillComparisonTable() {
         <th>Содержит x*?</th>
         <th>Узлы</th>
         <th>P(x*)</th>
-        <th>Погрешность</th>
+        <th>Ошибка интерполяции</th>
       </tr>
     </thead>
     <tbody>
