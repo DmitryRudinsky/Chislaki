@@ -92,11 +92,11 @@ function integrateForAlpha(alpha, overrides = {}) {
   };
 }
 
-function estimateInitialSlope(a, h = 1e-4) {
-  // численно оцениваем производную аналитического решения
-  const left = exactSolution(a - h);
-  const right = exactSolution(a + h);
-  return (right - left) / (2 * h);
+function estimateInitialSlope(cfg) {
+  // Начальное приближение по методичке:
+  // tg α0 = (y(b) − y(a)) / (b − a)
+  const { a, b, leftValue, rightValue } = cfg;
+  return (rightValue - leftValue) / (b - a);
 }
 
 function solveShooting(options = {}) {
@@ -106,7 +106,7 @@ function solveShooting(options = {}) {
   const tol = options.tolerance ?? 1e-8;
   const maxIter = options.maxIter ?? 10;
 
-  const alpha0 = options.alpha0 ?? estimateInitialSlope(a);
+  const alpha0 = options.alpha0 ?? estimateInitialSlope(cfg);
   const alpha1 = options.alpha1 ?? (alpha0 * 1.2);
 
   const iterations = [];
