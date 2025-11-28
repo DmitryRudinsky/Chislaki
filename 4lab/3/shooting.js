@@ -93,8 +93,6 @@ function integrateForAlpha(alpha, overrides = {}) {
 }
 
 function estimateInitialSlope(cfg) {
-  // Начальное приближение по методичке:
-  // tg α0 = (y(b) − y(a)) / (b − a)
   const { a, b, leftValue, rightValue } = cfg;
   return (rightValue - leftValue) / (b - a);
 }
