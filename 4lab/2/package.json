@@ -1,0 +1,22 @@
+{
+  "name": "lab4-bvp",
+  "version": "1.0.0",
+  "description": "Лабораторная 4.2 — краевая задача (конечно-разностный метод)",
+  "main": "electron-main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": [
+    "bvp",
+    "finite-difference",
+    "electron",
+    "chartjs"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^38.2.2"
+  }
+}
+
+

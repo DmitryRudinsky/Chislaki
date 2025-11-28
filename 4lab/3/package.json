@@ -1,0 +1,24 @@
+{
+  "name": "lab4-3-shooting",
+  "version": "1.0.0",
+  "description": "Лабораторная работа 4.3 — метод стрельбы для краевой задачи второго порядка",
+  "main": "electron-main.js",
+  "scripts": {
+    "start": "electron .",
+    "calc": "node shooting.js"
+  },
+  "keywords": [
+    "shooting-method",
+    "bvp",
+    "ode",
+    "numerical-methods",
+    "lab4"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^38.2.2"
+  }
+}
+
+

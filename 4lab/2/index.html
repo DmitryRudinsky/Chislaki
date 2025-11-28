@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Лаб 4.2 — Краевая задача (конечно-разностный метод)</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(130deg, #141e30 0%, #243b55 100%);
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 1700px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 28px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #141e30 0%, #243b55 100%);
+      color: #fff;
+      padding: 36px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.6em;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .header p {
+      font-size: 1.2em;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 32px;
+    }
+
+    .info-box {
+      background: linear-gradient(135deg, #4776e6 0%, #8e54e9 100%);
+      color: #fff;
+      padding: 28px;
+      border-radius: 22px;
+      margin-bottom: 32px;
+      box-shadow: 0 20px 50px rgba(71, 118, 230, 0.35);
+      display: grid;
+      gap: 18px;
+    }
+
+    .info-box h2 {
+      font-size: 1.8em;
+      font-weight: 600;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .info-card {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 18px;
+      border-radius: 16px;
+      backdrop-filter: blur(6px);
+    }
+
+    .info-card strong {
+      display: block;
+      font-size: 1.05em;
+      margin-bottom: 8px;
+    }
+
+    .control-panel {
+      background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+      border-radius: 22px;
+      padding: 26px;
+      margin-bottom: 32px;
+      box-shadow: 0 20px 50px rgba(253, 160, 133, 0.35);
+    }
+
+    .control-panel h3 {
+      color: #3f2b96;
+      font-size: 1.5em;
+      margin-bottom: 18px;
+    }
+
+    .control-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 16px;
+      background: rgba(255, 255, 255, 0.92);
+      padding: 18px;
+      border-radius: 16px;
+    }
+
+    .control-group label {
+      font-weight: 600;
+      font-size: 1.05em;
+      color: #3f2b96;
+      min-width: 220px;
+    }
+
+    .control-group input[type="range"] {
+      flex: 1;
+    }
+
+    .control-group input[type="number"] {
+      width: 120px;
+      padding: 10px 14px;
+      border: 2px solid #e3e8f3;
+      border-radius: 10px;
+      font-size: 1em;
+      font-family: inherit;
+    }
+
+    .control-group button {
+      padding: 10px 24px;
+      background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(33, 147, 176, 0.3);
+    }
+
+    .control-group button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(33, 147, 176, 0.4);
+    }
+
+    .step-info {
+      margin-top: 14px;
+      background: rgba(255, 255, 255, 0.92);
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 1em;
+      color: #3f2b96;
+      line-height: 1.5;
+    }
+
+    .section-title {
+      background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+      color: #4a1e1b;
+      padding: 20px;
+      border-radius: 18px;
+      margin: 40px 0 24px;
+      text-align: center;
+      font-size: 1.6em;
+      font-weight: 600;
+      box-shadow: 0 15px 40px rgba(255, 154, 158, 0.35);
+    }
+
+    .chart-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 22px;
+      border: 2px solid #edf0f7;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+    }
+
+    .chart-wrapper {
+      position: relative;
+      height: 460px;
+    }
+
+    .chart-wrapper.small {
+      height: 500px;
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 30px;
+      margin-top: 30px;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin-top: 30px;
+    }
+
+    .metric-card {
+      background: #f8f9fb;
+      padding: 22px;
+      border-radius: 18px;
+      border: 2px solid #edf0f7;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .metric-card h4 {
+      color: #1d2671;
+      font-size: 1.25em;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .metric-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .metric-list span {
+      background: #fff;
+      border-radius: 10px;
+      padding: 10px 14px;
+      border: 1px solid #e3e8f3;
+      font-size: 0.95em;
+    }
+
+    .table-card {
+      margin-top: 40px;
+      background: #f8f9fb;
+      padding: 24px;
+      border-radius: 22px;
+      border: 2px solid #edf0f7;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 18px;
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+    }
+
+    th, td {
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 1px solid #f0f2f8;
+      font-size: 0.95em;
+    }
+
+    th {
+      background: linear-gradient(135deg, #1d2671 0%, #c33764 100%);
+      color: #fff;
+      text-transform: uppercase;
+      font-size: 0.85em;
+      letter-spacing: 0.05em;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .footer {
+      padding: 24px;
+      text-align: center;
+      color: #6c6f89;
+      background: #f4f5fb;
+      border-top: 1px solid #e3e8f3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Лабораторная работа 4.2</h1>
+      <p>Конечно-разностное решение краевой задачи второго порядка + сравнение с аналитикой</p>
+    </div>
+
+    <div class="content">
+      <div class="info-box" id="problemInfo"></div>
+
+      <div class="control-panel">
+        <h3>⚙️ Управление сеткой и точностью</h3>
+        <div class="control-group">
+          <label for="segmentsSlider">Количество разбиений N (h = (b − a) / N)</label>
+          <input id="segmentsSlider" type="range" min="6" max="600" value="24" step="1">
+          <input id="segmentsInput" type="number" min="6" max="600" value="24" step="1">
+          <button id="recalculateBtn">🔄 Пересчитать</button>
+        </div>
+        <div id="stepInfo" class="step-info"></div>
+      </div>
+
+      <div class="section-title">Сравнение решений (аналитика всегда сверху списка)</div>
+      <div class="chart-card">
+        <div class="chart-wrapper">
+          <canvas id="solutionsChart"></canvas>
+        </div>
+        <div class="step-info" id="chartLegendHint">
+          Аналитическое решение показано первым, далее следуют сеточные аппроксимации для 1-го и 2-го порядка граничных условий.
+        </div>
+      </div>
+
+      <div class="section-title">Графики погрешностей</div>
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3>Абсолютная погрешность |y<sub>числ</sub> − y<sub>аналит</sub>|</h3>
+          <div class="chart-wrapper small">
+            <canvas id="absErrorChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>Относительная погрешность |e| / |y<sub>аналит</sub>|</h3>
+          <div class="chart-wrapper small">
+            <canvas id="relErrorChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>Разность решений (1-й порядок − 2-й порядок)</h3>
+          <div class="chart-wrapper small">
+            <canvas id="diffChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">Погрешности и характеристики схем</div>
+      <div class="metrics-grid">
+        <div class="metric-card" id="firstOrderMetrics"></div>
+        <div class="metric-card" id="secondOrderMetrics"></div>
+      </div>
+
+      <div class="table-card">
+        <h3>Таблица узлов: аналитика vs численные решения</h3>
+        <table id="summaryTable"></table>
+      </div>
+    </div>
+
+    <div class="footer">
+      © 2025 Численные методы | Лабораторная работа 4.2
+    </div>
+  </div>
+
+  <script src="bvp.js"></script>
+  <script src="graph.js"></script>
+</body>
+</html>
+
+

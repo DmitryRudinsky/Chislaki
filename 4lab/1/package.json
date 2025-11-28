@@ -1,0 +1,23 @@
+{
+  "name": "rk-lab4-1",
+  "version": "1.0.0",
+  "description": "Лабораторная работа 4.1 — численное решение ОДУ методами Рунге–Кутты",
+  "main": "electron-main.js",
+  "scripts": {
+    "start": "electron .",
+    "calc": "node rk.js"
+  },
+  "keywords": [
+    "runge-kutta",
+    "ode",
+    "numerical-methods",
+    "lab4"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^38.2.2"
+  }
+}
+
+

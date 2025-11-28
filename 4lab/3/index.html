@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Лаб 4.3 — Метод стрельбы для краевой задачи</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(130deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1500px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 24px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #0f2027 0%, #2c5364 100%);
+      color: #fff;
+      padding: 28px 32px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.2em;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 28px;
+    }
+
+    .info-box {
+      background: linear-gradient(135deg, #36d1dc 0%, #5b86e5 100%);
+      color: #fff;
+      padding: 22px;
+      border-radius: 18px;
+      margin-bottom: 26px;
+      box-shadow: 0 15px 40px rgba(54, 209, 220, 0.35);
+    }
+
+    .info-box h2 {
+      font-size: 1.6em;
+      margin-bottom: 10px;
+    }
+
+    .info-box p {
+      font-size: 1.02em;
+      line-height: 1.45;
+      margin: 4px 0;
+    }
+
+    .control-panel {
+      background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 26px;
+      box-shadow: 0 15px 40px rgba(168, 237, 234, 0.35);
+    }
+
+    .control-panel h3 {
+      color: #203a43;
+      font-size: 1.35em;
+      margin-bottom: 14px;
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .control-row label {
+      font-weight: 600;
+      color: #203a43;
+    }
+
+    .control-row input[type="range"] {
+      flex: 1;
+    }
+
+    .control-row input[type="number"] {
+      width: 110px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 2px solid #e3e8f3;
+      font-size: 0.98em;
+      font-family: inherit;
+    }
+
+    .control-row button {
+      padding: 9px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.98em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .control-row button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .step-info {
+      margin-top: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.96em;
+      line-height: 1.5;
+    }
+
+    .step-info strong {
+      color: #c33764;
+    }
+
+    .section-title {
+      background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+      color: #4a1e1b;
+      padding: 14px 18px;
+      border-radius: 16px;
+      margin: 26px 0 18px;
+      text-align: center;
+      font-size: 1.45em;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(255, 154, 158, 0.35);
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+      gap: 22px;
+    }
+
+    .chart-card {
+      background: #f8f9fb;
+      padding: 18px;
+      border-radius: 16px;
+      border: 2px solid #edf0f7;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    .chart-card h3 {
+      font-size: 1.15em;
+      margin-bottom: 10px;
+      color: #203a43;
+    }
+
+    .chart-wrapper {
+      position: relative;
+      height: 340px;
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 8px;
+      border: 1px solid #e3e8f3;
+    }
+
+    .table-card {
+      margin-top: 30px;
+      background: #f8f9fb;
+      padding: 20px;
+      border-radius: 18px;
+      border: 2px solid #edf0f7;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+    }
+
+    th, td {
+      text-align: right;
+      padding: 8px 10px;
+      border-bottom: 1px solid #f0f2f8;
+      font-size: 0.9em;
+      white-space: nowrap;
+    }
+
+    th {
+      background: linear-gradient(135deg, #1d2671 0%, #c33764 100%);
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 0.85em;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .footer {
+      padding: 18px;
+      text-align: center;
+      color: #6c6f89;
+      background: #f4f5fb;
+      border-top: 1px solid #e3e8f3;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Лабораторная работа 4.3</h1>
+      <p>Метод стрельбы для краевой задачи второго порядка (задача №29)</p>
+    </div>
+
+    <div class="content">
+      <div id="problemInfo" class="info-box"></div>
+
+      <div class="control-panel">
+        <h3>⚙️ Параметры метода стрельбы</h3>
+        <div class="control-row">
+          <label for="stepSlider">Шаг интегрирования h:</label>
+          <input id="stepSlider" type="range" min="0.1" max="0.6" step="0.05" value="0.2">
+          <input id="stepInput" type="number" step="0.05" min="0.05" max="0.6" value="0.2">
+
+          <label for="tolInput">Точность ε:</label>
+          <input id="tolInput" type="number" step="1e-8" value="1e-8">
+
+          <label for="maxIterInput">Макс. итераций:</label>
+          <input id="maxIterInput" type="number" min="2" max="20" value="8">
+
+          <button id="recalculateBtn">🔄 Пересчитать</button>
+        </div>
+        <div id="stepInfo" class="step-info"></div>
+      </div>
+
+      <div class="section-title">Аналитическое решение (эталон)</div>
+
+      <div class="chart-card">
+        <div class="chart-wrapper">
+          <canvas id="analyticChart"></canvas>
+        </div>
+        <div class="step-info" id="analyticInfo"></div>
+      </div>
+
+      <div class="section-title">Численное решение и погрешности (метод стрельбы)</div>
+
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3>Численное и аналитическое решение</h3>
+          <div class="chart-wrapper">
+            <canvas id="solutionChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <h3>Абсолютная погрешность |y<sub>числ</sub> − y<sub>аналит</sub>|</h3>
+          <div class="chart-wrapper">
+            <canvas id="errorChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <h3>Сходимость метода стрельбы по итерациям</h3>
+          <div class="chart-wrapper">
+            <canvas id="iterErrorChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <h3>Итерации подбора начального наклона y′(a) (метод стрельбы)</h3>
+        <table id="iterationsTable"></table>
+      </div>
+    </div>
+
+    <div class="footer">
+      © 2025 Численные методы | Лабораторная работа 4.3 — метод стрельбы
+    </div>
+  </div>
+
+  <script src="shooting.js"></script>
+  <script src="graph.js"></script>
+</body>
+</html>
+
+
