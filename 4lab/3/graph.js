@@ -130,12 +130,16 @@
     }
   });
 
-  const updateChart = (key, canvasId, labels, datasets, yTitle) => {
+  const updateChart = (key, canvasId, labels, datasets, yTitle, customOptions = null) => {
     const ctx = document.getElementById(canvasId).getContext('2d');
     if (charts[key]) {
       charts[key].data.labels = labels;
       charts[key].data.datasets = datasets;
-      charts[key].options.scales.y.title.text = yTitle;
+      if (customOptions) {
+        charts[key].options = customOptions;
+      } else {
+        charts[key].options.scales.y.title.text = yTitle;
+      }
       charts[key].update();
       return;
     }
@@ -143,7 +147,7 @@
     charts[key] = new Chart(ctx, {
       type: 'line',
       data: { labels, datasets },
-      options: createLineOptions(yTitle)
+      options: customOptions || createLineOptions(yTitle)
     });
   };
 
@@ -161,7 +165,8 @@
         backgroundColor: 'rgba(33, 212, 253, 0.12)',
         borderWidth: 3,
         pointRadius: 0,
-        tension: 0.12
+        tension: 0.12,
+        yAxisID: 'y'
       },
       {
         label: 'Численное решение (метод стрельбы + RK4)',
@@ -171,11 +176,134 @@
         borderWidth: 2,
         pointRadius: 4,
         pointHoverRadius: 6,
-        tension: 0.12
+        tension: 0.12,
+        yAxisID: 'y'
       }
     ];
 
-    updateChart('solution', 'solutionChart', labels, datasets, 'y(x)');
+    // Добавляем траектории для всех итераций с разными α
+    const { iterations, cfg } = result;
+    
+    console.log(`Всего итераций: ${iterations.length}`);
+    iterations.forEach((it, idx) => {
+      console.log(`  Итерация ${idx}: α=${it.alpha.toFixed(6)}, finalY=${it.finalY.toFixed(6)}, boundaryError=${it.boundaryError.toExponential(3)}`);
+    });
+    
+    // Показываем ВСЕ итерации как пунктирные линии
+    // (включая ту, которая стала финальным решением - пусть будет дубликат)
+    for (let i = 0; i < iterations.length; i += 1) {
+      const alpha = iterations[i].alpha;
+      const iterResult = window.ShootingLab.integrateForAlpha(alpha, cfg);
+      const finalError = iterResult.boundaryError;
+      const status = finalError > 0 ? 'Перелёт' : 'Недолёт';
+      const statusEmoji = finalError > 0 ? '↗️' : '↘️';
+      
+      console.log(`  -> Добавляем на график: Итерация ${i}, α=${alpha.toFixed(6)}, статус=${status}`);
+      
+      datasets.push({
+        label: `Итерация ${i}: α=${alpha.toFixed(4)} (${status} ${statusEmoji})`,
+        data: iterResult.ys.map((y, idx) => ({ x: iterResult.xs[idx], y })),
+        borderColor: finalError > 0 ? 'rgba(255, 99, 132, 0.6)' : 'rgba(54, 162, 235, 0.6)',
+        backgroundColor: 'transparent',
+        borderWidth: 1.5,
+        pointRadius: 0,
+        tension: 0.12,
+        borderDash: [5, 5],
+        yAxisID: 'y'
+      });
+    }
+
+    // Вычисляем диапазон для левой оси Y (решения)
+    const allYValues = [...exact, ...ys];
+    const minY = Math.min(...allYValues);
+    const maxY = Math.max(...allYValues);
+    const yPadding = (maxY - minY) * 0.1;
+
+    // Добавляем маркеры значений α на правой оси
+    const alphaValues = iterations.map(it => it.alpha);
+    const minAlpha = Math.min(...alphaValues);
+    const maxAlpha = Math.max(...alphaValues);
+    const alphaPadding = (maxAlpha - minAlpha) * 0.1;
+    
+    datasets.push({
+      label: 'Значения α (правая ось)',
+      data: iterations.map((it, idx) => ({ 
+        x: cfg.a + (cfg.b - cfg.a) * (idx / Math.max(1, iterations.length - 1)), 
+        y: it.alpha 
+      })),
+      borderColor: '#10b981',
+      backgroundColor: 'rgba(16, 185, 129, 0.3)',
+      borderWidth: 2.5,
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      tension: 0.3,
+      yAxisID: 'y2',
+      pointStyle: 'rectRot',
+      fill: false
+    });
+
+    // Создаём кастомные опции с двумя осями Y
+    const customOptions = {
+      responsive: true,
+      maintainAspectRatio: true,
+      interaction: {
+        mode: 'nearest',
+        intersect: false
+      },
+      plugins: {
+        legend: { 
+          position: 'bottom',
+          labels: {
+            usePointStyle: true,
+            padding: 10,
+            font: { size: 11 }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label(context) {
+              const { dataset } = context;
+              const { x, y } = context.parsed;
+              if (dataset.yAxisID === 'y2') {
+                return `${dataset.label}: α=${y.toFixed(6)} (итерация ${context.dataIndex})`;
+              }
+              return `${dataset.label}: x=${x.toFixed(3)}, y=${y.toFixed(4)}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'linear',
+          title: { display: true, text: 'x', font: { size: 13, weight: 'bold' } }
+        },
+        y: {
+          type: 'linear',
+          title: { display: true, text: 'y(x)', font: { size: 13, weight: 'bold' } },
+          position: 'left',
+          min: minY - yPadding,
+          max: maxY + yPadding,
+          ticks: {
+            color: '#203a43'
+          }
+        },
+        y2: {
+          type: 'linear',
+          title: { display: true, text: 'α = y\'(a)', font: { size: 13, weight: 'bold' } },
+          position: 'right',
+          min: minAlpha - alphaPadding,
+          max: maxAlpha + alphaPadding,
+          ticks: {
+            color: '#10b981'
+          },
+          grid: {
+            drawOnChartArea: false
+          }
+        }
+      }
+    };
+
+    updateChart('solution', 'solutionChart', labels, datasets, 'y(x)', customOptions);
   };
 
   const renderErrorChart = (result) => {

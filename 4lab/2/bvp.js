@@ -89,10 +89,11 @@ const BVP = (() => {
     return { xs, h, n };
   };
 
+  // Ay = b
   const buildSystem = (order, grid) => {
     const size = grid.xs.length;
-    const matrix = Array.from({ length: size }, () => Array(size).fill(0));
-    const rhs = Array(size).fill(0);
+    const matrix = Array.from({ length: size }, () => Array(size).fill(0)); // A
+    const rhs = Array(size).fill(0); // b
     const h = grid.h;
 
     if (order === 1) {

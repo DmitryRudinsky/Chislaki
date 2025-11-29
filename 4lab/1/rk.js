@@ -3,6 +3,8 @@ const odeConfig = {
   y0: Math.E,
   xEnd: 3,
   h: 0.1,
+  // Задача Коши: y' = f(x, y), y(x0) = y0
+  // y' = f(x, y) = y * ln(y) / x
   f: (x, y) => (y * Math.log(y)) / x,
   exact: (x) => Math.exp(x)
 };
@@ -11,7 +13,7 @@ const solverOptions = {
   implicitMaxIterations: 30,
   implicitTolerance: 1e-10
 };
-
+3
 const methodFamilies = {
   explicit: [
     {
