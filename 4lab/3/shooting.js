@@ -2,8 +2,8 @@ const shootingConfig = {
   a: 0.2,
   b: 3.0,
   h: 0.2,
-  leftValue: 0.09142857142857143, // y(0.2)
-  rightValue: 25.714285714285715 // y(3)
+  leftValue: 0.091, // y(0.2)
+  rightValue: 25.714 // y(3)
 };
 
 function exactSolution(x) {
